@@ -8,7 +8,6 @@ exports.fetchCategories = async (req, res) => {
     res.status(400).json(err);
   }
 };
-
 exports.createCategory = async (req, res) => {
   const category = new Category(req.body);
   try {
