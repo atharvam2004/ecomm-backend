@@ -9,6 +9,7 @@ exports.fetchCategories = async (req, res) => {
   }
 };
 
+
 exports.createCategory = async (req, res) => {
   const category = new Category(req.body);
   try {
