@@ -30,7 +30,7 @@ const { env } = require("process");
 const endpointSecret = process.env.ENDPOINT_SECRET;
 server.use(
   cors({
-    origin: "https://shoppee-ecomm.vercel.app",
+    origin: "*",
     exposedHeaders: ["X-Total-Count"],
     credentials: true,
   })
