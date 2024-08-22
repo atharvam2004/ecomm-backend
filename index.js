@@ -86,9 +86,7 @@ server.use(
 server.use(passport.authenticate("session"));
 server.use(
   cors({
-    origin: "https://mern-ecommerce-frontend-livid.vercel.app",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    allowedHeaders: "*",
+    origin: "https://shoppee-ecomm.vercel.app",
     exposedHeaders: ["X-Total-Count"],
     credentials: true,
   })
