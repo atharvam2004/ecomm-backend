@@ -28,7 +28,13 @@ const { env } = require("process");
 // Webhook
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
-
+server.use(
+  cors({
+    origin: "https://shoppee-ecomm.vercel.app",
+    exposedHeaders: ["X-Total-Count"],
+    credentials: true,
+  })
+);
 server.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -84,13 +90,7 @@ server.use(
   })
 );
 server.use(passport.authenticate("session"));
-server.use(
-  cors({
-    origin: "https://shoppee-ecomm.vercel.app",
-    exposedHeaders: ["X-Total-Count"],
-    credentials: true,
-  })
-);
+
 server.use(express.json()); // to parse req.body
 
 server.use("/products", isAuth(), productsRouter.router);
