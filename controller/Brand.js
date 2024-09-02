@@ -18,3 +18,14 @@ exports.createBrand = async (req, res) => {
     res.status(400).json(err);
   }
 };
+
+exports.createBrands = async (req, res) => {
+  const brands = req.body;
+  console.log(brands)
+  try {
+    const docs = await Brand.insertMany(brands);
+    res.status(201).json(docs);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};

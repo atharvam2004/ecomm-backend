@@ -11,6 +11,27 @@ exports.createProduct = async (req, res) => {
     res.status(400).json(err);
   }
 };
+exports.createProducts = async (req, res) => {
+  // Extract products array from request body
+  const products = req.body;
+
+  // Remove the 'id' field from each product object and calculate discountPrice
+  const processedProducts = products.map(productData => {
+    
+    const { id, brand = "unknown",...productFields } = productData;
+    productFields.brand=brand
+    productFields.discountPrice = Math.round(productFields.price * (1 - productFields.discountPercentage / 100));
+    return new Product(productFields);
+  });
+
+  try {
+    // Save all products in the database
+    const docs = await Product.insertMany(processedProducts);
+    res.status(201).json(docs);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
 
 exports.fetchAllProducts = async (req, res) => {
   // filter = {"category":["smartphone","laptops"]}

@@ -18,6 +18,12 @@ exports.createCategory = async (req, res) => {
     res.status(400).json(err);
   }
 };
-
-
-
+exports.createCategories = async (req, res) => {
+  const categories = req.body; 
+  try {
+    const docs = await Category.insertMany(categories);
+    res.status(201).json(docs);
+  } catch (err) {
+    res.status(400).json(err);
+  }
+};
