@@ -24,11 +24,43 @@ const { isAuth, sanitizeUser, cookieExtractor } = require('./services/common');
 const path = require('path');
 const { Order } = require('./model/Order');
 const { env } = require('process');
+const Razorpay = require('razorpay');
 
 // Webhook
 
 const endpointSecret = process.env.ENDPOINT_SECRET;
 
+const secret_key = '1234567890' 
+
+server.post('/paymentCapture', (req, res) => {
+
+   // do a validation
+
+const data = crypto.createHmac('sha256', secret_key)
+
+   data.update(JSON.stringify(req.body))
+
+   const digest = data.digest('hex')
+
+if (digest === req.headers['x-razorpay-signature']) {
+
+       console.log('request is legit')
+
+       //We can send the response and store information in a database.
+
+       res.json({
+
+           status: 'ok'
+
+       })
+
+} else {
+
+       res.status(400).send('Invalid signature');
+
+   }
+
+})
 server.post(
   '/webhook',
   express.raw({ type: 'application/json' }),
@@ -178,26 +210,67 @@ passport.deserializeUser(function (user, cb) {
 // Payments
 
 // This is your test secret API key.
-const stripe = require('stripe')(process.env.STRIPE_SERVER_KEY);
+server.post('/refund', async (req, res) => {
 
+  try {
+
+      //Verify the payment Id first, then access the Razorpay API.
+
+      const options = {
+
+          payment_id: req.body.paymentId,
+
+          amount: req.body.amount,
+
+      };
+
+const razorpayResponse = await razorpay.refund(options);
+
+      //We can send the response and store information in a database
+
+      res.send('Successfully refunded')
+
+  } catch (error) {
+
+      console.log(error);
+
+      res.status(400).send('unable to issue a refund');
+
+  }
+
+})
 server.post('/create-payment-intent', async (req, res) => {
   const { totalAmount, orderId } = req.body;
+  const razorpay = new Razorpay({
+    key_id: process.env.STRIPE_SERVER_KEY,
+    key_secret: process.env.ENDPOINT_SECRET,
+});
+console.log("aaaa");
 
-  // Create a PaymentIntent with the order amount and currency
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: totalAmount * 100, // for decimal compensation
-    currency: 'inr',
-    automatic_payment_methods: {
-      enabled: true,
-    },
-    metadata: {
-      orderId,
-    },
+// setting up options for razorpay order.
+const options = {
+    amount: totalAmount,
+    currency:"INR",
+    receipt: "any unique id for every order",
+    payment_capture: 1
+};
+try {
+    const response = await razorpay.orders.create(options, (error, order) => {
+      if (error) {
+          console.log(error);
+          return res.status(500).json({ message: "Something Went Wrong!" });
+      }
+      console.log("asasas");
+      res.status(200).json({   
+        order_id: response.id,
+        currency: response.currency,
+        amount: response.amount, });
+      console.log(order)
   });
-
-  res.send({
-    clientSecret: paymentIntent.client_secret,
-  });
+   
+} catch (err) {
+   res.status(400).send('Not able to create order. Please try again!');
+}  
 });
 
 main().catch((err) => console.log(err));
