@@ -32,7 +32,7 @@ const endpointSecret = process.env.ENDPOINT_SECRET;
 
 const secret_key = '1234567890' 
 
-server.post('/paymentCapture', (req, res) => {
+server.post('/payment', (req, res) => {
 
    // do a validation
 
@@ -49,7 +49,7 @@ if (digest === req.headers['x-razorpay-signature']) {
        //We can send the response and store information in a database.
 
        res.json({
-
+          
            status: 'ok'
 
        })
@@ -239,8 +239,9 @@ const razorpayResponse = await razorpay.refund(options);
   }
 
 })
+
 server.post('/create-payment-intent', async (req, res) => {
-  const { totalAmount, orderId } = req.body;
+  const { amount, orderId } = req.body;
   const razorpay = new Razorpay({
     key_id: process.env.STRIPE_SERVER_KEY,
     key_secret: process.env.ENDPOINT_SECRET,
@@ -249,30 +250,23 @@ console.log("aaaa");
 
 // setting up options for razorpay order.
 const options = {
-    amount: totalAmount,
+    amount: amount*100,
     currency:"INR",
     receipt: "any unique id for every order",
     payment_capture: 1
 };
 try {
-    const response = await razorpay.orders.create(options, (error, order) => {
-      if (error) {
-          console.log(error);
-          return res.status(500).json({ message: "Something Went Wrong!" });
-      }
-      console.log("asasas");
-      res.status(200).json({   
-        order_id: response.id,
-        currency: response.currency,
-        amount: response.amount, });
-      console.log(order)
-  });
-   
-} catch (err) {
-   res.status(400).send('Not able to create order. Please try again!');
-}  
+  const response = await razorpay.orders.create(options)
+  console.log(response)
+  res.json({
+    id: response.id,
+    currency: response.currency,
+    amount: response.amount
+  })
+} catch (error) {
+  console.log(error)
+} 
 });
-
 main().catch((err) => console.log(err));
 
 async function main() {
